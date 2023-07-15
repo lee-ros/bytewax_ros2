@@ -1,2 +1,10 @@
+# VS-Code
 .vscode
+
+#Python
 **/__pycache__
+
+# ROS2
+build
+install
+log
