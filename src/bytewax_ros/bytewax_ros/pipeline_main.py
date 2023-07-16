@@ -1,27 +1,57 @@
+import logging
+
+from typing import Any, Tuple
+
 import rclpy
 
-from bytewax.connectors.stdio import StdOutput
 from bytewax.dataflow import Dataflow
 from bytewax.run import cli_main
 from std_msgs import msg as std_msg
 from rclpy.node import Node
 
 from connectors import RosTopicInput, RosTopicOutput
+from bytewax_ros.bytewax_ros.thresholds import Threshold
+from bytewax_ros.bytewax_ros.threshold_handler import ThresholdHandler
+
+
+def message_to_value(message: std_msg.Float32) -> float:
+    return message.data
+
+
+def log_value(value: float) -> float:
+    logging.info("value=")
+    return value
+
+
+def execute_threshold(data: Tuple[Threshold, float]) -> Any:
+    threshold, value = data
+    return threshold.execute(value * threshold.threshold)
+
+
+def threshold_result_to_message(result: float) -> std_msg.Float32:
+    return std_msg.Float32(data=result)
 
 
 def main():
+    threshold_handler = ThresholdHandler([
+        Threshold(threshold=1, callback=log_value),
+        Threshold(threshold=2, callback=log_value),
+        Threshold(threshold=3, callback=log_value),
+    ])
+    
     rclpy.init()
     node = Node("pipeline_node")
 
-    msg_type = std_msg.String
+    msg_type = std_msg.Float32
     inp_topic_name = "/data_in"
     out_topic_name = "/data_out"
 
     flow = Dataflow()
     flow.input("inp", RosTopicInput(node, msg_type, inp_topic_name))
-    flow.map(lambda msg: msg.data)
-    flow.output("out", StdOutput())
-    flow.map(lambda val: std_msg.String(data=val + "!"))
+    flow.map(message_to_value)
+    flow.filter_map(threshold_handler.select_threshold)
+    flow.map(execute_threshold)
+    flow.map(threshold_result_to_message)
     flow.output("out", RosTopicOutput(node, msg_type, out_topic_name))
 
     flow_args = {
