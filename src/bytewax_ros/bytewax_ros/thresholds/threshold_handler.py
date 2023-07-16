@@ -1,6 +1,8 @@
 from typing import List, Optional
 
-from thresholds import DefaultThreshold, Threshold, ThresholdDirection
+from .threshold import Threshold
+from .default_threshold import DefaultThreshold
+from .threshold_direction import ThresholdDirection
 
 
 class ThresholdHandler:

@@ -11,10 +11,8 @@ from bytewax.run import cli_main
 from std_msgs import msg as std_msg
 from rclpy.node import Node
 
-from connectors import RosTopicInput, RosTopicOutput
-from thresholds import Threshold
-from threshold_handler import ThresholdHandler
-
+from bytewax_ros.connectors import RosTopicInput, RosTopicOutput
+from bytewax_ros.thresholds import Threshold, ThresholdHandler
 
 def message_to_value(message: std_msg.Float32) -> float:
     return message.data
