@@ -1,5 +1,7 @@
 import logging
 
+from functools import partial
+from threading import Thread
 from typing import Any, Tuple
 
 import rclpy
@@ -10,8 +12,8 @@ from std_msgs import msg as std_msg
 from rclpy.node import Node
 
 from connectors import RosTopicInput, RosTopicOutput
-from bytewax_ros.bytewax_ros.thresholds import Threshold
-from bytewax_ros.bytewax_ros.threshold_handler import ThresholdHandler
+from thresholds import Threshold
+from threshold_handler import ThresholdHandler
 
 
 def message_to_value(message: std_msg.Float32) -> float:
@@ -59,7 +61,14 @@ def main():
         "recovery_config": None,
     }
 
-    cli_main(**flow_args)
+    # cli_main(**flow_args)
+    
+    thread1 = Thread(target=partial(cli_main, **flow_args))
+    thread2 = Thread(target=partial(cli_main, **flow_args))
+    thread1.start()
+    thread2.start()
+    
+    rclpy.spin(node)
 
     rclpy.shutdown()
 

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from bytewax_ros.bytewax_ros.thresholds import DefaultThreshold, Threshold, ThresholdDirection
+from thresholds import DefaultThreshold, Threshold, ThresholdDirection
 
 
 class ThresholdHandler:

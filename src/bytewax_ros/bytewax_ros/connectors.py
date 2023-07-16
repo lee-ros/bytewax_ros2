@@ -1,11 +1,8 @@
 from typing import Any
 
-import rclpy
-
 from bytewax.inputs import StatelessSource, DynamicInput
 from bytewax.outputs import StatelessSink, DynamicOutput
 from rclpy.node import Node
-from rclpy.utilities import try_shutdown as rclpy_try_shutdown
 
 
 __all__ = [
@@ -25,19 +22,11 @@ class _RosTopicSource(StatelessSource):
     def _fetch_message_from_topic(self, new_msg: Any):
         self._msg = new_msg
         
-    def next(self) -> Any | None:
-        self._run_node()
-        
+    def next(self) -> Any | None: 
         temp_msg = self._msg
         self._msg = None
         
         return temp_msg
-    
-    def _run_node(self):
-        rclpy.spin_once(self._node)
-        
-    def close(self):
-        rclpy_try_shutdown()
     
 
 class RosTopicInput(DynamicInput):
@@ -58,9 +47,6 @@ class _RosTopicSink(StatelessSink):
         
     def write(self, item: Any):
         self._publisher.publish(item)
-        
-    def close(self):
-        rclpy_try_shutdown()
 
 
 class RosTopicOutput(DynamicOutput):
