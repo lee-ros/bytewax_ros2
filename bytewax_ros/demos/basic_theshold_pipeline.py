@@ -1,5 +1,6 @@
-from functools import partial
 import threading
+
+from functools import partial
 from time import sleep
 from typing import Any
 
@@ -15,7 +16,7 @@ from bytewax_ros.thresholds import Threshold, ThresholdHandler
 from bytewax_ros.utils import run_flow_as_thread, value_from_obj
 
 
-def build_message(data: float) -> std_msg.String:
+def build_message(data: str) -> std_msg.String:
     string = f"Thread-{threading.current_thread().name}: {data}"
     return std_msg.String(data=string)
 
@@ -23,8 +24,10 @@ def build_message(data: float) -> std_msg.String:
 def execute_threshold(threshold: Threshold) -> Any:
     return threshold.execute_once()
 
-
-def create_flow(node: Node):
+def main():
+    rclpy.init()
+    node = Node("flow_node")  # type: ignore
+    
     inp_msg_type = std_msg.Float32
     inp_topic_name = "/data_in"
     out_msg_type = std_msg.String
@@ -32,9 +35,9 @@ def create_flow(node: Node):
 
     threshold_handler = ThresholdHandler(
         [
-            Threshold(threshold=1, callback=partial(build_message, 1.0)),
-            Threshold(threshold=2, callback=partial(build_message, 2.0)),
-            Threshold(threshold=3, callback=partial(build_message, 3.0)),
+            Threshold(threshold=1, callback=partial(build_message, "Threshold #1 crossed")),
+            Threshold(threshold=2, callback=partial(build_message, "Threshold #2 crossed")),
+            Threshold(threshold=3, callback=partial(build_message, "Threshold #3 crossed")),
         ]
     )
 
@@ -45,15 +48,7 @@ def create_flow(node: Node):
     flow.filter_map(execute_threshold)
     flow.output("out", RosTopicOutput(node, out_msg_type, out_topic_name))
 
-    return flow
-
-
-def main():
-    rclpy.init()
-    node = Node("flow_node")  # type: ignore
-
-    run_flow_as_thread("flow1", create_flow(node))
-    run_flow_as_thread("flow2", create_flow(node))
+    run_flow_as_thread("flow", flow)
 
     while True:
         try:
