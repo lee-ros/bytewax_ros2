@@ -1,6 +1,6 @@
 import pytest
 
-from bytewax_ros.utils import value_from_obj
+from bytewax_ros.utilities import value_from_obj
 
 
 @pytest.mark.parametrize(

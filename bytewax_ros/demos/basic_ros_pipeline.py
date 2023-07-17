@@ -8,7 +8,7 @@ from rclpy.node import Node
 from rclpy.utilities import try_shutdown as rclpy_shutdown
 
 from bytewax_ros.connectors import RosTopicInput, RosTopicOutput
-from bytewax_ros.utils import run_flow_as_thread, value_from_obj
+from bytewax_ros.utilities import run_flow_as_thread, value_from_obj
 
 
 def main():
