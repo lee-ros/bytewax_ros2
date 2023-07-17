@@ -8,7 +8,7 @@ class Threshold:
     def __init__(
         self,
         threshold: float,
-        callback: Callable[[float], Any],
+        callback: Callable[[], Any],
         direction=ThresholdDirection.ABOVE,
     ):
         self._threshold = threshold
@@ -25,7 +25,7 @@ class Threshold:
     def threshold(self):
         return self._threshold
 
-    def check_threshold(self, value: float):
+    def check_threshold(self, value: float) -> bool:
         crossed = self._comparison_op(value, self._threshold)
 
         if not crossed:
@@ -37,23 +37,29 @@ class Threshold:
         crossed = self.check_threshold(value)
 
         if crossed and not self._called:
-            self.execute(value)
+            self.execute()
 
         return crossed
 
     def clear(self):
         self._called = False
 
-    def execute(self, value: float):
+    def execute(self) -> Any:
         callback_return_value = None
 
         if self._callback is not None:
-            callback_return_value = self._callback(value)
+            callback_return_value = self._callback()
             self._called = True
 
         return callback_return_value
 
-    def _select_operand_by_direction(self, direction: ThresholdDirection):
+    def execute_once(self) -> Any:
+        if not self._called:
+            return self.execute()
+
+    def _select_operand_by_direction(
+        self, direction: ThresholdDirection
+    ) -> Callable:
         if direction == ThresholdDirection.ABOVE:
             return operator.gt
         return operator.lt

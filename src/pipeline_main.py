@@ -1,74 +1,68 @@
-import logging
-
 from functools import partial
-from threading import Thread
-from typing import Any, Tuple
+import threading
+from time import sleep
+from typing import Any
 
 import rclpy
 
 from bytewax.dataflow import Dataflow
-from bytewax.run import cli_main
 from std_msgs import msg as std_msg
 from rclpy.node import Node
+from rclpy.utilities import try_shutdown as rclpy_shutdown
 
 from bytewax_ros.connectors import RosTopicInput, RosTopicOutput
 from bytewax_ros.thresholds import Threshold, ThresholdHandler
-
-def message_to_value(message: std_msg.Float32) -> float:
-    return message.data
+from bytewax_ros.utils import run_flow_as_thread, value_from_obj
 
 
-def log_value(value: float) -> float:
-    logging.info("value=")
-    return value
+def build_message(data: float) -> std_msg.String:
+    string = f"Thread-{threading.current_thread().name}: {data}"
+    return std_msg.String(data=string)
 
 
-def execute_threshold(data: Tuple[Threshold, float]) -> Any:
-    threshold, value = data
-    return threshold.execute(value * threshold.threshold)
+def execute_threshold(threshold: Threshold) -> Any:
+    return threshold.execute_once()
 
 
-def threshold_result_to_message(result: float) -> std_msg.Float32:
-    return std_msg.Float32(data=result)
+def create_flow(node: Node):
+    inp_msg_type = std_msg.Float32
+    inp_topic_name = "/data_in"
+    out_msg_type = std_msg.String
+    out_topic_name = "/data_out"
+
+    threshold_handler = ThresholdHandler(
+        [
+            Threshold(threshold=1, callback=partial(build_message, 1.0)),
+            Threshold(threshold=2, callback=partial(build_message, 2.0)),
+            Threshold(threshold=3, callback=partial(build_message, 3.0)),
+        ]
+    )
+
+    flow = Dataflow()
+    flow.input("inp", RosTopicInput(node, inp_msg_type, inp_topic_name))
+    flow.map(lambda msg: value_from_obj(msg, "obj.data"))
+    flow.filter_map(threshold_handler.select_threshold)
+    flow.filter_map(execute_threshold)
+    flow.output("out", RosTopicOutput(node, out_msg_type, out_topic_name))
+
+    return flow
 
 
 def main():
-    threshold_handler = ThresholdHandler([
-        Threshold(threshold=1, callback=log_value),
-        Threshold(threshold=2, callback=log_value),
-        Threshold(threshold=3, callback=log_value),
-    ])
-    
     rclpy.init()
-    node = Node("pipeline_node")
+    node = Node("flow_node")  # type: ignore
 
-    msg_type = std_msg.Float32
-    inp_topic_name = "/data_in"
-    out_topic_name = "/data_out"
+    run_flow_as_thread("flow1", create_flow(node))
+    run_flow_as_thread("flow2", create_flow(node))
 
-    flow = Dataflow()
-    flow.input("inp", RosTopicInput(node, msg_type, inp_topic_name))
-    flow.map(message_to_value)
-    flow.filter_map(threshold_handler.select_threshold)
-    flow.map(execute_threshold)
-    flow.map(threshold_result_to_message)
-    flow.output("out", RosTopicOutput(node, msg_type, out_topic_name))
+    while True:
+        try:
+            rclpy.spin_once(node)
+            sleep(0)
+        except KeyboardInterrupt:
+            break
 
-    flow_args = {
-        "flow": flow,
-        "recovery_config": None,
-    }
-
-    # cli_main(**flow_args)
-    
-    thread1 = Thread(target=partial(cli_main, **flow_args))
-    thread2 = Thread(target=partial(cli_main, **flow_args))
-    thread1.start()
-    thread2.start()
-    
-    rclpy.spin(node)
-
-    rclpy.shutdown()
+    rclpy_shutdown()
 
 
 if __name__ == "__main__":

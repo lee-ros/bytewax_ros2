@@ -52,9 +52,11 @@ class ThresholdHandler:
 
             if crossed:
                 self._clear_not_crossed_thresholds(crossed_threshold=threshold)
-                return threshold, value
+                return threshold
 
-    def _clear_not_crossed_thresholds(self, *, crossed_threshold: Threshold = None):
+    def _clear_not_crossed_thresholds(
+        self, *, crossed_threshold: Optional[Threshold] = None
+    ):
         for t in self._thresholds:
             if t is not crossed_threshold:
                 t.clear()
