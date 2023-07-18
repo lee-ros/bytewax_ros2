@@ -8,6 +8,25 @@ from bytewax.run import cli_main
 from bytewax_ros.bands import Band
 
 
+def value_from_obj(obj: Any, attribute: str) -> Any:
+    """Safely evaluates the value of an attribute path from an object
+
+    Args:
+        obj: the object to get the value from
+        attribute: a string representing the path to the value, must begin with `obj` as the object name
+
+    Returns:
+        the evaluated value from the object
+
+    Example:
+        ```
+        obj = {'a' : 5}
+        value_from_obj(obj, "obj['a']")  # -> 5
+        ```
+    """
+    return eval(attribute, {}, {"obj": obj})
+
+
 def intersect_bands(bands: List[Band]) -> Tuple[bool, Optional[Band], Optional[Band]]:
     """Find the first intersecting bands in a list of bands
 
