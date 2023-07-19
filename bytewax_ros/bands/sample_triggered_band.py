@@ -20,13 +20,13 @@ class SampleTriggeredBand(Band):
     def check_sample(self, sample: float) -> bool:
         if not self._is_sample_in_band(sample):
             return False
-        if self._conscutive_samples_in_band < self._number_of_samples:
+        if self._consecutive_samples_in_band < self._number_of_samples:
             return False
         return True
 
     def _is_sample_in_band(self, sample: float) -> bool:
         result = super()._is_sample_in_band(sample)
-        self._conscutive_samples_in_band = (
-            self._conscutive_samples_in_band + 1 if result else 0
+        self._consecutive_samples_in_band = (
+            self._consecutive_samples_in_band + 1 if result else 0
         )
         return result
