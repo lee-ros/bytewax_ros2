@@ -1,14 +1,12 @@
 from functools import partial
 from threading import Thread
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 from bytewax.dataflow import Dataflow
 from bytewax.run import cli_main
 
-from bytewax_ros.bands import Band
 
-
-def value_from_obj(obj: Any, attribute: str) -> Any:
+def eval_value_from_obj(obj: Any, attribute: str) -> Any:
     """Safely evaluates the value of an attribute path from an object
 
     Args:
@@ -25,42 +23,6 @@ def value_from_obj(obj: Any, attribute: str) -> Any:
         ```
     """
     return eval(attribute, {}, {"obj": obj})
-
-
-def find_intersections(bands: List[Band]) -> List[Tuple[Band, Band]]:
-    """Find intersections in a list of bands
-
-    Args:
-        bands: list of bands to search in
-
-    Returns:
-        A list of two-tuple containing the intersecting bands
-    """
-    intersections = []
-    bands.sort(key=lambda band: band.lower_limit)
-
-    for i in range(len(bands) - 1):
-        if bands[i].intersect(bands[i + 1]):
-            intersections.append((bands[i], bands[i + 1]))
-    return intersections
-
-
-def verify_no_intersections(bands: List[Band]) -> bool:
-    """Verify that a given list of bands has no intersections
-
-    Args:
-        bands: list of bands to verify
-
-    Returns:
-        True if the list of bands has no intersections
-
-    Raises:
-        `ValueError` if the bands has intersection
-    """
-    intersections = find_intersections(bands)
-    if intersections:
-        raise ValueError(f"Intersections found at: {intersections}")
-    return True
 
 
 def run_flow(flow: Dataflow):
