@@ -8,7 +8,7 @@ from rclpy.node import Node
 from rclpy.utilities import try_shutdown as rclpy_shutdown
 
 from bytewax_ros.connectors import RosTopicInput, RosTopicOutput
-from bytewax_ros.utilities import run_flow_as_thread, value_from_obj
+from bytewax_ros.execution import run_flow_as_thread, eval_value_from_obj
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
     
     flow = Dataflow()
     flow.input("inp", RosTopicInput(node, inp_msg_type, inp_topic_name))
-    flow.map(lambda msg: value_from_obj(msg, "obj.data"))
+    flow.map(lambda msg: eval_value_from_obj(msg, "obj.data"))
     flow.map(lambda data: std_msg.String(data=str(data)))
     flow.output("out", RosTopicOutput(node, out_msg_type, out_topic_name))
 

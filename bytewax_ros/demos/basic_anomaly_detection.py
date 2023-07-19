@@ -3,7 +3,7 @@ from bytewax.dataflow import Dataflow
 from bytewax.testing import  TestingInput
 
 from bytewax_ros.bands import BandDetector, BandSeverity, DefaultBand, SampleTriggeredBand
-from bytewax_ros.utilities import run_flow
+from bytewax_ros.execution import run_flow
 
 
 critical_above_band = SampleTriggeredBand(5, 10, BandSeverity.CRITICAL, 1)
