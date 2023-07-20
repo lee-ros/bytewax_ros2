@@ -1,14 +1,15 @@
-from typing import Any, Optional, TypeVar
+from typing import Any
 
 
-T = TypeVar('T')
+class UniqueFilter:
+    """This class is used to filter duplicate items in a stream of samples"""
 
-
-class Unique:
     def __init__(self):
         self._last_unique_sample = None
 
-    def __call__(self, sample: T) -> Optional[T]:
-        if self._last_unique_sample != sample:
-            self._last_unique_sample = sample
-            return sample
+    def __call__(self, sample: Any) -> bool:
+        if self._last_unique_sample == sample:
+            return False
+
+        self._last_unique_sample = sample
+        return True
