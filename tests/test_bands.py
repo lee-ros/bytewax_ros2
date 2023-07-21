@@ -4,6 +4,9 @@ from bytewax_ros.bands import (
     Band,
     BandSeverity,
     SampleTriggeredBand,
+)
+
+from bytewax_ros.bands.utilities import (
     find_intersections,
     verify_no_intersections,
     verify_no_gaps,
@@ -61,7 +64,7 @@ def test_verify_no_intersections():
         Band(3, 5, BandSeverity.OK),
         Band(5, 7, BandSeverity.OK),
     ]
-    
+
     assert verify_no_intersections(bands) is None
 
 
@@ -75,15 +78,16 @@ def test_verify_intersections():
     with pytest.raises(ValueError):
         verify_no_intersections(bands)
 
+
 def test_verify_no_gaps():
     bands = [
         Band(0, 3, BandSeverity.OK),
         Band(3, 5, BandSeverity.OK),
         Band(5, 7, BandSeverity.OK),
     ]
-    
+
     assert verify_no_gaps(bands) is None
-        
+
 
 def test_verify_gaps():
     bands = [
@@ -91,6 +95,6 @@ def test_verify_gaps():
         Band(3, 5, BandSeverity.OK),
         Band(5.5, 7, BandSeverity.OK),
     ]
-    
+
     with pytest.raises(ValueError):
         verify_no_gaps(bands)
