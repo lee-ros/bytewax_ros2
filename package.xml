@@ -5,7 +5,7 @@
   <version>0.0.1</version>
   <description>An extention package for the Bytewax data-processing library to allow connection for ROS2</description>
   <maintainer email="laluk321@gmail.com">leeros</maintainer>
-  <license></license>
+  <license>Apache-2.0 license</license>
 
   <test_depend>python3-pytest</test_depend>
 
