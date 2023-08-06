@@ -1,4 +1,5 @@
 from typing import Any
+from queue import Empty, Queue
 
 from bytewax.inputs import StatelessSource, DynamicInput
 from bytewax.outputs import StatelessSink, DynamicOutput
@@ -20,11 +21,12 @@ class _RosTopicSource(StatelessSource):
         topic_name: str,
         *,
         qos_profile=10,
-        callback_group=MutuallyExclusiveCallbackGroup()
+        callback_group=MutuallyExclusiveCallbackGroup(),
+        sync_queue_depth=5
     ):
         super().__init__()
         self._node = node
-        self._msg = None
+        self._queue = Queue(maxsize=sync_queue_depth)
 
         node.create_subscription(
             msg_type,
@@ -35,13 +37,13 @@ class _RosTopicSource(StatelessSource):
         )
 
     def _fetch_message_from_topic(self, new_msg: Any):
-        self._msg = new_msg
+        self._queue.put_nowait(new_msg)
 
-    def next(self) -> Any | None:
-        temp_msg = self._msg
-        self._msg = None
-
-        return temp_msg
+    def next(self) -> Any:
+        try:
+            return self._queue.get_nowait()
+        except Empty:
+            return None
 
 
 class RosTopicInput(DynamicInput):
